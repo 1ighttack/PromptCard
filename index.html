@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提示词Card</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap');
+
+  /* ===== DARK THEME (default) ===== */
+  :root {
+    --bg: #0d0d0f;
+    --bg2: #141418;
+    --bg3: #1c1c22;
+    --bg4: #242430;
+    --border: #2a2a36;
+    --border2: #363644;
+    --accent: #7c6aff;
+    --accent2: #9d8fff;
+    --accent-glow: rgba(124,106,255,0.15);
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --text: #e8e8f0;
+    --text2: #a0a0b8;
+    --text3: #606078;
+    --radius: 10px;
+    --font-main: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --shadow: 0 4px 20px rgba(0,0,0,0.35);
+    --shadow-panel: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  /* ===== LIGHT THEME ===== */
+  :root.light {
+    --bg: #f5f5f8;
+    --bg2: #ffffff;
+    --bg3: #f0f0f5;
+    --bg4: #e8e8f0;
+    --border: #e0e0ea;
+    --border2: #d0d0de;
+    --accent: #6355e8;
+    --accent2: #5046d4;
+    --accent-glow: rgba(99,85,232,0.10);
+    --green: #059669;
+    --amber: #d97706;
+    --red: #dc2626;
+    --text: #111118;
+    --text2: #4a4a6a;
+    --text3: #9090a8;
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-panel: 0 20px 60px rgba(0,0,0,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-main);
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 13px;
+  }
+
+  /* ===== LAYOUT ===== */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 200px;
+    min-width: 200px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0;
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 16px 16px;
+    font-size: 16px; font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent), #b06aff);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  .nav-section { padding: 0 8px; margin-bottom: 4px; }
+  .nav-label {
+    font-size: 9px; font-weight: 700;
+    color: var(--text3); letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 6px 8px 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text2);
+    transition: all 0.15s;
+    font-size: 12.5px;
+    font-weight: 500;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--accent-glow); color: var(--accent2); }
+  .nav-item .icon { font-size: 14px; width: 18px; text-align: center; }
+  .nav-item .badge {
+    margin-left: auto;
+    background: var(--bg4); color: var(--text3);
+    font-size: 10px; padding: 1px 6px;
+    border-radius: 10px; font-family: var(--font-mono);
+  }
+
+  .sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
+
+  .categories-section { flex: 1; overflow-y: auto; padding: 0 8px; }
+  .cat-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px; border-radius: 8px;
+    cursor: pointer; color: var(--text2);
+    font-size: 12px; font-weight: 500;
+    transition: all 0.15s;
+  }
+  .cat-item:hover { background: var(--bg3); color: var(--text); }
+  .cat-item.active { background: var(--bg3); color: var(--text); }
+  .cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .cat-count { margin-left: auto; font-size: 10px; color: var(--text3); font-family: var(--font-mono); }
+
+  .add-cat-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border-radius: 8px;
+    cursor: pointer; color: var(--text3);
+    font-size: 11px; transition: all 0.15s;
+    border: 1px dashed var(--border);
+    margin: 4px 0;
+  }
+  .add-cat-btn:hover { color: var(--accent2); border-color: var(--accent); }
+
+  /* Main Content */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+  }
+
+  .search-box {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0 12px;
+    transition: border-color 0.2s;
+  }
+  .search-box:focus-within { border-color: var(--accent); }
+  .search-box input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text); font-family: var(--font-main); font-size: 13px;
+    padding: 7px 0;
+  }
+  .search-box input::placeholder { color: var(--text3); }
+  .search-icon { color: var(--text3); font-size: 13px; }
+
+  .toolbar-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 12px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg3); color: var(--text2);
+    cursor: pointer; font-family: var(--font-main);
+    font-size: 12px; font-weight: 500;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .toolbar-btn:hover { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+  .toolbar-btn.primary {
+    background: var(--accent); color: white;
+    border-color: var(--accent);
+  }
+  .toolbar-btn.primary:hover { background: var(--accent2); }
+
+  .view-toggle {
+    display: flex; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+  }
+  .view-btn {
+    padding: 7px 10px; cursor: pointer; color: var(--text3);
+    transition: all 0.15s; font-size: 13px; border: none;
+    background: none;
+  }
+  .view-btn.active { background: var(--bg4); color: var(--accent2); }
+
+  /* Filter Bar */
+  .filter-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto; flex-shrink: 0;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+    border: 1px solid var(--border2);
+    color: var(--text2); background: none;
+    transition: all 0.15s;
+  }
+  .filter-chip:hover { border-color: var(--accent); color: var(--accent2); }
+  .filter-chip.active { background: var(--accent-glow); border-color: var(--accent); color: var(--accent2); }
+
+  /* Content Area */
+  .content { flex: 1; overflow-y: auto; padding: 16px; }
+  .content::-webkit-scrollbar { width: 4px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Card Grid */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .prompt-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .prompt-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .prompt-card:hover {
+    border-color: var(--border2);
+    background: var(--bg3);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+  .prompt-card:hover::before { opacity: 1; }
+
+  .card-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .card-title { flex: 1; font-size: 13.5px; font-weight: 700; color: var(--text); line-height: 1.3; }
+  .card-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+  .prompt-card:hover .card-actions { opacity: 1; }
+  .card-action-btn {
+    width: 26px; height: 26px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text3); font-size: 13px;
+    background: var(--bg4); border: none;
+    transition: all 0.15s;
+  }
+  .card-action-btn:hover { color: var(--text); background: var(--border2); }
+  .card-action-btn.fav.active { color: var(--amber); }
+  .card-action-btn.del:hover { color: var(--red); }
+
+  .card-desc {
+    font-size: 11.5px; color: var(--text2); 
+    margin-bottom: 10px; line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .card-preview {
+    font-family: var(--font-mono); font-size: 10.5px;
+    color: var(--text3); background: var(--bg);
+    border-radius: 6px; padding: 8px 10px;
+    margin-bottom: 10px;
+    max-height: 52px; overflow: hidden;
+    line-height: 1.5;
+    border: 1px solid var(--border);
+  }
+
+  .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    padding: 2px 7px; border-radius: 4px;
+    font-size: 10px; font-weight: 600;
+    background: var(--bg4); color: var(--text3);
+  }
+  .tag.jinja { background: rgba(124,106,255,0.12); color: var(--accent2); }
+  .tag.cat { }
+  .card-stats { margin-left: auto; display: flex; align-items: center; gap: 6px; color: var(--text3); font-size: 10.5px; font-family: var(--font-mono); }
+
+  /* Table View */
+  .table-view { width: 100%; border-collapse: collapse; }
+  .table-view th {
+    text-align: left; padding: 8px 12px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--text3);
+    border-bottom: 1px solid var(--border);
+  }
+  .table-view td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    font-size: 12.5px; color: var(--text2);
+  }
+  .table-view tr:hover td { background: var(--bg3); cursor: pointer; }
+  .table-view .td-title { color: var(--text); font-weight: 600; }
+
+  /* Empty State */
+  .empty-state {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 20px; color: var(--text3);
+    text-align: center;
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-title { font-size: 15px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+  .empty-desc { font-size: 12px; line-height: 1.6; }
+
+  /* ===== PANELS ===== */
+  .panel-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    box-shadow: var(--shadow-panel);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Never exceed viewport */
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 40px);
+  }
+
+  /* Fixed sizes — use panel must be big enough for split layout */
+  .panel-lg { width: 780px; height: 560px; }
+  .panel-md { width: 520px; height: auto; max-height: calc(100vh - 80px); }
+  .panel-sm { width: 380px; height: auto; }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;          /* never shrink */
+    height: 54px;
+  }
+  .panel-title { font-size: 15px; font-weight: 700; flex: 1; }
+  .panel-close {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text3);
+    background: var(--bg3); border: none; font-size: 16px;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .panel-close:hover { background: var(--bg4); color: var(--text); }
+
+  .panel-footer {
+    display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+    padding: 13px 20px; border-top: 1px solid var(--border);
+    flex-shrink: 0;          /* never shrink */
+    height: 54px;
+  }
+
+  /* Default scrollable body (add/edit prompt, AI, etc.) */
+  .panel-body {
+    flex: 1;
+    min-height: 0;           /* key: allows flex child to shrink below content size */
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .panel-body::-webkit-scrollbar { width: 4px; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* ---- Split body (use-prompt modal: left vars + right preview) ---- */
+  .panel-body-split {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+  }
+
+  .split-left {
+    width: 45%;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .split-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .split-header {
+    padding: 10px 16px;
+    font-size: 10px; font-weight: 700;
+    color: var(--text3); letter-spacing: 1.2px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    height: 36px;
+    display: flex; align-items: center;
+  }
+
+  .split-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 14px 16px;
+  }
+  .split-scroll::-webkit-scrollbar { width: 4px; }
+  .split-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Form Elements */
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block; margin-bottom: 6px;
+    font-size: 11px; font-weight: 700;
+    color: var(--text2); letter-spacing: 0.5px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: var(--font-main); font-size: 13px;
+    padding: 8px 12px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+  .form-textarea.mono { font-family: var(--font-mono); font-size: 12px; }
+  .form-select { cursor: pointer; }
+  .form-select option { background: var(--bg3); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .form-hint { font-size: 10.5px; color: var(--text3); margin-top: 4px; }
+
+  /* Template Editor */
+  .editor-wrap { position: relative; }
+  .editor-toolbar {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-bottom: none; border-radius: 8px 8px 0 0;
+    padding: 6px 10px;
+  }
+  .editor-wrap .form-textarea {
+    border-radius: 0 0 8px 8px;
+    min-height: 140px;
+  }
+  .editor-insert-btn {
+    padding: 3px 8px; border-radius: 5px;
+    background: var(--bg4); border: 1px solid var(--border2);
+    color: var(--text2); cursor: pointer;
+    font-size: 10.5px; font-family: var(--font-mono);
+    transition: all 0.15s;
+  }
+  .editor-insert-btn:hover { color: var(--accent2); border-color: var(--accent); }
+
+  .template-toggle {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .toggle-switch {
+    width: 36px; height: 20px; border-radius: 10px;
+    background: var(--bg4); border: 1px solid var(--border2);
+    position: relative; cursor: pointer; transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle-switch.on { background: var(--accent); border-color: var(--accent); }
+  .toggle-switch::after {
+    content: '';
+    position: absolute; top: 2px; left: 2px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: white; transition: transform 0.2s;
+  }
+  .toggle-switch.on::after { transform: translateX(16px); }
+  .toggle-label { font-size: 11.5px; color: var(--text2); font-weight: 500; }
+  .toggle-badge { background: rgba(124,106,255,0.15); color: var(--accent2); font-size: 10px; padding: 1px 6px; border-radius: 4px; }
+
+  /* Variable Fill Panel */
+  .var-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .var-input-wrap { }
+  .var-input-wrap.array .form-input { display: none; }
+  .array-hint { font-size: 10.5px; color: var(--text3); margin-top: 2px; }
+
+  .preview-box {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px;
+    font-family: var(--font-mono); font-size: 12px;
+    line-height: 1.7; color: var(--text); white-space: pre-wrap;
+    max-height: 280px; overflow-y: auto;
+    word-break: break-word;
+  }
+
+  /* History View */
+  .history-item {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+    margin-bottom: 8px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .history-item:hover { border-color: var(--border2); }
+  .history-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .history-meta { font-size: 11px; color: var(--text3); margin-bottom: 6px; font-family: var(--font-mono); }
+  .history-preview {
+    font-family: var(--font-mono); font-size: 11px; color: var(--text2);
+    background: var(--bg); padding: 6px 8px; border-radius: 5px;
+    max-height: 44px; overflow: hidden; line-height: 1.5;
+  }
+
+  /* AI Panel */
+  .ai-output {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px;
+    font-family: var(--font-mono); font-size: 12px;
+    line-height: 1.7; color: var(--text); white-space: pre-wrap;
+    min-height: 120px; max-height: 240px; overflow-y: auto;
+    word-break: break-word;
+  }
+  .ai-output.streaming::after {
+    content: '▊';
+    animation: blink 0.7s infinite;
+    color: var(--accent);
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .ai-actions {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    padding: 8px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 8px;
+  }
+  .ai-action-btn {
+    padding: 5px 10px; border-radius: 6px;
+    background: var(--bg4); border: 1px solid var(--border2);
+    color: var(--text2); cursor: pointer;
+    font-size: 11px; font-family: var(--font-main); font-weight: 500;
+    transition: all 0.15s;
+  }
+  .ai-action-btn:hover { color: var(--accent2); border-color: var(--accent); }
+
+  /* Config View */
+  .config-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px;
+    margin-bottom: 10px; position: relative;
+  }
+  .config-card.default { border-color: var(--accent); }
+  .config-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .config-name { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; }
+  .config-provider { font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
+  .config-default-badge { background: var(--accent-glow); color: var(--accent2); font-size: 10px; padding: 2px 8px; border-radius: 4px; }
+  .config-actions { display: flex; gap: 6px; }
+  .config-btn {
+    padding: 4px 10px; border-radius: 6px;
+    background: var(--bg4); border: 1px solid var(--border2);
+    color: var(--text2); cursor: pointer; font-size: 11px;
+    transition: all 0.15s;
+  }
+  .config-btn:hover { color: var(--text); }
+  .config-btn.del:hover { color: var(--red); border-color: var(--red); }
+
+  /* Backup View */
+  .backup-section { margin-bottom: 20px; }
+  .backup-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+  .backup-desc { font-size: 12px; color: var(--text2); margin-bottom: 12px; line-height: 1.6; }
+  .backup-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 6px;
+  }
+  .backup-item-info { flex: 1; }
+  .backup-item-key { font-size: 12px; color: var(--text); font-family: var(--font-mono); }
+  .backup-item-date { font-size: 11px; color: var(--text3); }
+
+  /* Tabs */
+  .tab-nav {
+    display: flex; gap: 2px;
+    background: var(--bg3); padding: 3px;
+    border-radius: 10px; margin-bottom: 16px;
+  }
+  .tab-btn {
+    flex: 1; padding: 7px; border-radius: 7px;
+    font-family: var(--font-main); font-size: 12px; font-weight: 600;
+    cursor: pointer; color: var(--text3);
+    background: none; border: none;
+    transition: all 0.15s; text-align: center;
+  }
+  .tab-btn.active { background: var(--bg); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px;
+    font-family: var(--font-main); font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; border: none;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-secondary {
+    background: var(--bg4); color: var(--text2);
+    border: 1px solid var(--border2);
+  }
+  .btn-secondary:hover { color: var(--text); background: var(--bg3); }
+  .btn-ghost { background: none; color: var(--text2); }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-danger { background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+  .btn-danger:hover { background: rgba(248,113,113,0.2); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Status / Toast */
+  #toast {
+    position: fixed; bottom: 20px; right: 20px;
+    padding: 10px 16px; border-radius: 8px;
+    font-size: 12.5px; font-weight: 600;
+    z-index: 9999; opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.2s;
+    pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.success { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+  #toast.error { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+  #toast.info { background: var(--accent-glow); color: var(--accent2); border: 1px solid rgba(124,106,255,0.3); }
+
+  /* Rating stars */
+  .stars { color: var(--amber); font-size: 12px; letter-spacing: 1px; }
+  .stars.empty { color: var(--border2); }
+
+  /* ===== THEME TOGGLE ===== */
+  .theme-toggle-btn {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 15px;
+    background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text2); transition: all 0.15s;
+    margin: 0 16px 10px;
+    flex-shrink: 0;
+  }
+  .theme-toggle-btn:hover { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+
+  /* Light theme specific tweaks */
+  :root.light .card-preview { color: var(--text2); }
+  :root.light .panel-overlay { background: rgba(0,0,0,0.35); }
+  :root.light .editor-toolbar { background: var(--bg4); }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Page Views */
+  .page { display: none; }
+  .page.active { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+  /* Highlight variable in preview */
+  .var-highlight { color: var(--accent2); font-weight: 500; }
+
+  .count-badge {
+    background: var(--accent-glow); color: var(--accent2);
+    font-size: 10px; padding: 1px 7px; border-radius: 10px;
+    font-family: var(--font-mono); font-weight: 600;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">✦</div>
+      提示词Card
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">管理</div>
+      <div class="nav-item active" data-page="prompts" onclick="switchPage('prompts', this)">
+        <span class="icon">⊞</span> 提示词库
+        <span class="badge" id="total-count">0</span>
+      </div>
+      <div class="nav-item" data-page="history" onclick="switchPage('history', this)">
+        <span class="icon">◷</span> 历史记录
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="nav-section">
+      <div class="nav-label">分类</div>
+    </div>
+    <div class="categories-section" id="categories-list">
+      <div class="cat-item active" data-cat="" onclick="filterByCategory('', this)">
+        <span style="font-size:13px">☰</span>
+        <span>全部</span>
+        <span class="cat-count" id="cat-all-count">0</span>
+      </div>
+      <!-- Dynamic categories -->
+    </div>
+    <div style="padding: 4px 8px 8px;">
+      <div class="add-cat-btn" onclick="showAddCategory()">
+        <span>＋</span> 新建分类
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="nav-section">
+      <div class="nav-item" data-page="ai-config" onclick="switchPage('ai-config', this)">
+        <span class="icon">⚙</span> AI 配置
+      </div>
+      <div class="nav-item" data-page="backup" onclick="switchPage('backup', this)">
+        <span class="icon">☁</span> 备份恢复
+      </div>
+    </div>
+
+    <div style="flex:1"></div>
+    <div class="sidebar-divider"></div>
+    <div style="padding:8px 8px 4px;display:flex;align-items:center;gap:8px">
+      <div class="theme-toggle-btn" id="theme-btn" onclick="toggleTheme()" title="切换亮色/暗色主题">🌙</div>
+      <span style="font-size:11px;color:var(--text3)" id="theme-label">暗色模式</span>
+    </div>
+
+</div>
+  <!-- Main -->
+  <div class="main">
+
+    <!-- === PAGE: PROMPTS === -->
+    <div class="page active" id="page-prompts">
+      <div style="display:flex;flex:1;overflow:hidden;min-height:0;">
+
+        <!-- List area (shrinks when drawer opens) -->
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+          <div class="toolbar">
+            <div class="search-box">
+              <span class="search-icon">⌕</span>
+              <input type="text" id="search-input" placeholder="搜索提示词..." oninput="handleSearch()">
+            </div>
+            <div class="view-toggle">
+              <button class="view-btn active" id="view-card" onclick="setView('card')" title="卡片视图">⊞</button>
+              <button class="view-btn" id="view-table" onclick="setView('table')" title="表格视图">☰</button>
+            </div>
+            <button class="toolbar-btn primary" onclick="showAddPrompt()">＋ 新建提示词</button>
+          </div>
+          <div class="filter-bar">
+            <span style="font-size:11px;color:var(--text3);white-space:nowrap;">筛选：</span>
+            <button class="filter-chip active" data-filter="all" onclick="setFilter('all', this)">全部</button>
+            <button class="filter-chip" data-filter="favorite" onclick="setFilter('favorite', this)">⭐ 收藏</button>
+            <button class="filter-chip" data-filter="jinja" onclick="setFilter('jinja', this)">Jinja 模板</button>
+            <button class="filter-chip" data-filter="r5" onclick="setFilter('r5', this)">★★★★★</button>
+            <button class="filter-chip" data-filter="recent" onclick="setFilter('recent', this)">最近使用</button>
+            <div id="tag-filters"></div>
+          </div>
+          <div class="content" id="prompts-content">
+            <div class="card-grid" id="card-grid"></div>
+            <table class="table-view" id="table-view" style="display:none">
+              <thead><tr>
+                <th>标题</th><th>分类</th><th>标签</th><th>使用次数</th><th>更新时间</th>
+              </tr></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right drawer: use prompt -->
+        <div id="use-drawer" style="
+          width: 0;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          border-left: 0px solid var(--border);
+          background: var(--bg2);
+          transition: width 0.25s ease, border-width 0.25s;
+          flex-shrink: 0;
+        ">
+          <!-- Drawer Header -->
+          <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;gap:8px;">
+            <div style="flex:1;min-width:0;">
+              <div id="drawer-title" style="font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+              <div id="drawer-hint" style="font-size:11px;color:var(--text3);margin-top:1px;"></div>
+            </div>
+            <button onclick="closeDrawer()" style="
+              flex-shrink:0;width:28px;height:28px;border-radius:8px;
+              background:var(--bg3);border:1px solid var(--border);
+              color:var(--text2);cursor:pointer;font-size:16px;
+              display:flex;align-items:center;justify-content:center;
+            ">×</button>
+          </div>
+
+          <!-- Vars section -->
+          <div id="drawer-vars-section" style="flex-shrink:0;border-bottom:1px solid var(--border);">
+            <div style="padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;">变量填充</div>
+            <div id="drawer-vars" style="padding:0 16px 12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:240px;"></div>
+            <div id="drawer-no-vars" style="display:none;padding:12px 16px;font-size:12px;color:var(--text3);">📋 无变量，直接复制</div>
+          </div>
+
+          <!-- Preview section -->
+          <div style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;flex-shrink:0;">实时预览</div>
+            <div style="flex:1;overflow-y:auto;padding:0 16px 12px;min-height:0;">
+              <pre id="drawer-preview" style="font-family:var(--font-mono);font-size:12px;line-height:1.8;color:var(--text);white-space:pre-wrap;word-break:break-word;margin:0;"></pre>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;">
+            <span id="drawer-char-count" style="font-size:11px;color:var(--text3);flex:1;"></span>
+            <button class="btn btn-primary" onclick="copyRendered()" style="font-size:12px;padding:7px 14px;">📋 复制内容</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- === PAGE: HISTORY === -->
+    <div class="page" id="page-history">
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input type="text" id="history-search" placeholder="搜索历史记录..." oninput="renderHistory()">
+        </div>
+        <button class="toolbar-btn" onclick="clearAllHistory()" style="color:var(--red)">🗑 清空历史</button>
+      </div>
+      <div class="content" id="history-content"></div>
+    </div>
+
+    <!-- === PAGE: AI CONFIG === -->
+    <div class="page" id="page-ai-config">
+      <div class="toolbar">
+        <span style="font-size:13px;font-weight:700;">AI 模型配置</span>
+        <button class="toolbar-btn primary" onclick="showAddAIConfig()" style="margin-left:auto">＋ 添加配置</button>
+      </div>
+      <div class="content" id="ai-config-content"></div>
+    </div>
+
+    <!-- === PAGE: BACKUP === -->
+    <div class="page" id="page-backup">
+      <div class="toolbar">
+        <span style="font-size:13px;font-weight:700;">备份与恢复</span>
+      </div>
+      <div class="content" id="backup-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Add/Edit Prompt Modal -->
+<div class="panel-overlay" id="modal-prompt" style="display:none" onclick="closeModalOutside(event,'modal-prompt')">
+  <div class="panel panel-lg" onclick="event.stopPropagation()">
+    <div class="panel-header">
+      <span class="panel-title" id="modal-prompt-title">新建提示词</span>
+      <button class="panel-close" onclick="closeModal('modal-prompt')">×</button>
+    </div>
+    <div class="panel-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">标题 *</label>
+          <input class="form-input" id="p-title" placeholder="提示词名称">
+        </div>
+        <div class="form-group">
+          <label class="form-label">分类</label>
+          <select class="form-select" id="p-category">
+            <option value="">无分类</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">描述</label>
+        <input class="form-input" id="p-desc" placeholder="简单描述这个提示词的用途...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">标签（空格分隔）</label>
+        <input class="form-input" id="p-tags" placeholder="写作 分析 技术...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">提示词内容 *</label>
+        <div class="template-toggle" id="jinja-toggle" onclick="toggleJinjaMode()">
+          <div class="toggle-switch" id="jinja-switch"></div>
+          <span class="toggle-label">Jinja 模板模式</span>
+          <span class="toggle-badge">支持 if/for/filter</span>
+        </div>
+        <div class="editor-wrap">
+          <div class="editor-toolbar">
+            <span style="font-size:10px;color:var(--text3);margin-right:4px;">插入：</span>
+            <button class="editor-insert-btn" onclick="insertSnippet('{{变量名}}')">{{变量}}</button>
+            <button class="editor-insert-btn" id="btn-if" onclick="insertSnippet('{% if 条件 %}\n\n{% endif %}')">{% if %}</button>
+            <button class="editor-insert-btn" id="btn-for" onclick="insertSnippet('{% for 项 in 列表 %}\n{{项}}\n{% endfor %}')">{% for %}</button>
+            <button class="editor-insert-btn" id="btn-filter" onclick="insertSnippet('{{ 变量 | upper }}')">| filter</button>
+            <button class="ai-action-btn" style="margin-left:auto" onclick="showAIOptimize()">✨ AI 优化</button>
+            <button class="ai-action-btn" onclick="aiExtractVariables()">⚡ 提取变量</button>
+          </div>
+          <textarea class="form-textarea mono" id="p-content" rows="8" placeholder="在此输入提示词内容，使用 {{变量名}} 插入变量..."></textarea>
+        </div>
+        <div class="form-hint" id="vars-hint" style="color:var(--accent2)"></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">评分</label>
+          <select class="form-select" id="p-rating">
+            <option value="0">未评分</option>
+            <option value="1">★ 1星</option>
+            <option value="2">★★ 2星</option>
+            <option value="3">★★★ 3星</option>
+            <option value="4">★★★★ 4星</option>
+            <option value="5">★★★★★ 5星</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">收藏</label>
+          <div style="display:flex;align-items:center;height:37px;gap:10px">
+            <div class="toggle-switch" id="fav-switch" onclick="this.classList.toggle('on')"></div>
+            <span style="font-size:12px;color:var(--text2)">标记为收藏</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-prompt')">取消</button>
+      <button class="btn btn-primary" onclick="savePrompt()">保存提示词</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- AI Generate Modal -->
+<div class="panel-overlay" id="modal-ai-gen" style="display:none" onclick="closeModalOutside(event,'modal-ai-gen')">
+  <div class="panel panel-md" onclick="event.stopPropagation()">
+    <div class="panel-header">
+      <span class="panel-title">✨ AI 生成提示词</span>
+      <button class="panel-close" onclick="closeModal('modal-ai-gen')">×</button>
+    </div>
+    <div class="panel-body">
+      <div class="form-group">
+        <label class="form-label">描述你需要什么提示词</label>
+        <textarea class="form-textarea" id="ai-gen-desc" rows="3" placeholder="例如：帮我写一个用于分析竞争对手的提示词，需要支持不同行业和产品..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">AI 生成结果</label>
+        <div class="ai-output" id="ai-gen-output">等待生成...</div>
+      </div>
+      <div class="ai-actions" id="ai-gen-actions" style="display:none">
+        <button class="ai-action-btn" onclick="useAIGenResult()">✅ 使用此内容</button>
+        <button class="ai-action-btn" onclick="regenAI()">🔄 重新生成</button>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-ai-gen')">关闭</button>
+      <button class="btn btn-primary" id="ai-gen-btn" onclick="runAIGenerate()">
+        <span class="spinner" style="display:none" id="ai-gen-spinner"></span>
+        生成提示词
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Optimize Modal -->
+<div class="panel-overlay" id="modal-ai-opt" style="display:none" onclick="closeModalOutside(event,'modal-ai-opt')">
+  <div class="panel panel-md" onclick="event.stopPropagation()">
+    <div class="panel-header">
+      <span class="panel-title">⚡ AI 优化提示词</span>
+      <button class="panel-close" onclick="closeModal('modal-ai-opt')">×</button>
+    </div>
+    <div class="panel-body">
+      <div class="form-group">
+        <label class="form-label">优化方向</label>
+        <div class="ai-actions" style="margin-bottom:8px">
+          <button class="ai-action-btn" onclick="setOptInstruction('使提示词更具体、更详细')">更具体</button>
+          <button class="ai-action-btn" onclick="setOptInstruction('提取可变部分为变量')">提取变量</button>
+          <button class="ai-action-btn" onclick="setOptInstruction('优化为Jinja模板格式，加入条件判断')">转Jinja模板</button>
+          <button class="ai-action-btn" onclick="setOptInstruction('简化和精简，去除冗余')">精简优化</button>
+        </div>
+        <input class="form-input" id="opt-instruction" placeholder="自定义优化指令...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">优化结果</label>
+        <div class="ai-output" id="ai-opt-output">点击"开始优化"生成结果...</div>
+      </div>
+      <div class="ai-actions" id="ai-opt-actions" style="display:none">
+        <button class="ai-action-btn" onclick="applyOptResult()">✅ 应用到编辑器</button>
+        <button class="ai-action-btn" onclick="reoptimizeAI()">🔄 重新优化</button>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-ai-opt')">关闭</button>
+      <button class="btn btn-primary" id="ai-opt-btn" onclick="runAIOptimize()">
+        <span class="spinner" style="display:none" id="ai-opt-spinner"></span>
+        开始优化
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add AI Config Modal -->
+<div class="panel-overlay" id="modal-ai-config" style="display:none" onclick="closeModalOutside(event,'modal-ai-config')">
+  <div class="panel panel-md" onclick="event.stopPropagation()">
+    <div class="panel-header">
+      <span class="panel-title" id="modal-ai-config-title">添加 AI 配置</span>
+      <button class="panel-close" onclick="closeModal('modal-ai-config')">×</button>
+    </div>
+    <div class="panel-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">配置名称</label>
+          <input class="form-input" id="cfg-name" placeholder="我的 GPT-4">
+        </div>
+        <div class="form-group">
+          <label class="form-label">服务商</label>
+          <select class="form-select" id="cfg-provider" onchange="onProviderChange()">
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">API Key</label>
+        <input class="form-input" id="cfg-key" type="password" placeholder="sk-...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">API Base URL（可选，留空使用默认）</label>
+        <input class="form-input" id="cfg-url" id="cfg-url" placeholder="https://api.openai.com/v1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">模型</label>
+        <input class="form-input" id="cfg-model" placeholder="gpt-4o">
+        <div class="form-hint" id="cfg-model-hint">快速选择：<span id="model-presets"></span></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-secondary" onclick="testAIConfig()" id="test-btn">🔌 测试连接</button>
+        <span id="test-result" style="font-size:12px;align-self:center;color:var(--text2)"></span>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-ai-config')">取消</button>
+      <button class="btn btn-primary" onclick="saveAIConfig()">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="panel-overlay" id="modal-cat" style="display:none" onclick="closeModalOutside(event,'modal-cat')">
+  <div class="panel panel-sm" onclick="event.stopPropagation()">
+    <div class="panel-header">
+      <span class="panel-title">新建分类</span>
+      <button class="panel-close" onclick="closeModal('modal-cat')">×</button>
+    </div>
+    <div class="panel-body">
+      <div class="form-group">
+        <label class="form-label">分类名称</label>
+        <input class="form-input" id="cat-name" placeholder="例如：写作助手">
+      </div>
+      <div class="form-group">
+        <label class="form-label">颜色</label>
+        <div id="color-presets" style="display:flex;gap:8px;flex-wrap:wrap;padding:4px 0"></div>
+        <input type="color" id="cat-color" value="#6366f1" style="margin-top:6px;height:32px;width:100%;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer">
+      </div>
+    </div>
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-cat')">取消</button>
+      <button class="btn btn-primary" onclick="saveCategory()">创建分类</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="lib/jinja.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

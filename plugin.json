@@ -1,0 +1,27 @@
+{
+  "pluginName": "提示词Card",
+  "description": "AI 提示词管理工具 - 支持模板变量、Jinja模板、分类管理、历史记录",
+  "main": "index.html",
+  "version": "1.0.0",
+  "logo": "logo.png",
+  "preload": "preload.js",
+  "features": [
+    {
+      "code": "promptcard_main",
+      "explain": "打开提示词Card",
+      "cmds": ["提示词Card", "提示词", "prompt", "promptcard"]
+    },
+    {
+      "code": "promptcard_search",
+      "explain": "搜索提示词",
+      "cmds": [
+        {
+          "type": "regex",
+          "label": "搜索提示词",
+          "match": "/^ps:.+/",
+          "minLength": 1
+        }
+      ]
+    }
+  ]
+}
