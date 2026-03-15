@@ -12,7 +12,10 @@
 - **数据备份** — uTools 云备份 + 本地 JSON 导出/导入
 
 ## 界面展示
-
+![image](https://github.com/1ighttack/PromptCard/blob/main/%E5%9B%BE%E7%89%87/1-%E7%95%8C%E9%9D%A2.png)
+![image](https://github.com/1ighttack/PromptCard/blob/main/%E5%9B%BE%E7%89%87/2-ai%E9%85%8D%E7%BD%AE.png)
+![image](https://github.com/1ighttack/PromptCard/blob/main/%E5%9B%BE%E7%89%87/3-%E5%A4%87%E4%BB%BD%E6%81%A2%E5%A4%8D.png)
+![image](https://github.com/1ighttack/PromptCard/blob/main/%E5%9B%BE%E7%89%87/4-%E7%95%8C%E9%9D%A2%E9%A2%9C%E8%89%B2.png)
 
 ## 文件结构
 
