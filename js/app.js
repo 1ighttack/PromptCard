@@ -244,7 +244,9 @@ function renderSidebar() {
       <span class="cat-dot" style="background:${cat.color}"></span>
       <span>${cat.name}</span>
       <span class="cat-count">${count}</span>
+      <span class="cat-del" onclick="deleteCategory(event,'${cat.id}')">🗑</span>
     `
+
     list.appendChild(div)
   })
 }
@@ -1237,4 +1239,21 @@ function escAttr(str) {
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+function deleteCategory(e, id) {
+  e.stopPropagation()
+
+  if (!confirm('确定删除这个分类吗？')) return
+
+  Storage.deleteCategory(id)
+
+  // 把属于这个分类的提示词分类清空
+  const prompts = Storage.getPrompts()
+  prompts.forEach(p => {
+    if (p.category === id) p.category = ''
+  })
+  Storage.savePrompts(prompts)
+
+  renderAll()
 }
